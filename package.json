@@ -4,7 +4,8 @@
   "description": "Portal de aplicaciones PWA con funcionalidad offline/online",
   "main": "server-config.js",
   "scripts": {
-    "start": "node server-production.js",
+    "start": "node server-simple.js",
+    "production": "node server-production.js",
     "dev": "node server-json.js",
     "local": "node server-config.js"
   },
