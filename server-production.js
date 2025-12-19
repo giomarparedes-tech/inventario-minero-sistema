@@ -371,11 +371,17 @@ app.get('/', (req, res) => {
 
 // Health check para Railway
 app.get('/health', (req, res) => {
-    res.json({ 
+    res.status(200).json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
+        port: PORT
     });
+});
+
+// Root endpoint para Railway health check
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index-production.html'));
 });
 
 // Iniciar servidor
