@@ -1,0 +1,106 @@
+[
+  {
+    "id": "admin_001",
+    "username": "admin",
+    "password": "$2b$12$rxJKEfojNeaoRnfqPRtLGetxkjLgKnkkQ0w.YKB8QvHCPy0zB2KVC",
+    "fullName": "Administrador del Sistema",
+    "email": "admin@empresa.com",
+    "role": "Administrador",
+    "active": true,
+    "shift": "A",
+    "createdAt": "2025-12-19T03:13:04.186Z",
+    "lastModified": "2025-12-19T03:13:04.188Z",
+    "lastAccess": null,
+    "permissions": [
+      "all"
+    ]
+  },
+  {
+    "id": "supervisor_001",
+    "username": "supervisor",
+    "password": "$2b$12$ioywlkmDRKW2oKC8mKaxOOqIcg9uJsAEcnVou2lumGuh8gnEziR9q",
+    "fullName": "Supervisor de Turno",
+    "email": "supervisor@empresa.com",
+    "role": "Supervisor",
+    "active": true,
+    "shift": "A",
+    "createdAt": "2025-12-19T03:13:04.533Z",
+    "lastModified": "2025-12-19T03:13:04.533Z",
+    "lastAccess": null,
+    "permissions": [
+      "read",
+      "write",
+      "approve"
+    ]
+  },
+  {
+    "id": "mecanico_001",
+    "username": "mecanico",
+    "password": "$2b$12$CDhezfQUJUpy6mOKNhsSXeorK39sQZtGqn3vQvKCOiTsKaIHt4lAS",
+    "fullName": "Mecánico Principal",
+    "email": "mecanico@empresa.com",
+    "role": "Mecánico",
+    "active": true,
+    "shift": "B",
+    "createdAt": "2025-12-19T03:13:04.859Z",
+    "lastModified": "2025-12-19T03:13:04.859Z",
+    "lastAccess": null,
+    "permissions": [
+      "read",
+      "write",
+      "maintenance"
+    ]
+  },
+  {
+    "id": "operador_001",
+    "username": "operador",
+    "password": "$2b$12$PkolkeX849FLX.QikYdtrOGK9wBVmby6XfIyPpjxUZjxUcrYJaX8m",
+    "fullName": "Operador de Planta",
+    "email": "operador@empresa.com",
+    "role": "Operador",
+    "active": true,
+    "shift": "C",
+    "createdAt": "2025-12-19T03:13:05.195Z",
+    "lastModified": "2025-12-19T03:13:05.195Z",
+    "lastAccess": null,
+    "permissions": [
+      "read",
+      "report"
+    ]
+  },
+  {
+    "id": "visualizador_001",
+    "username": "visualizador",
+    "password": "$2b$12$BOOAkimERXrA0peZ0y898OwlieUJhGQbJJMooNYR7oZ/UMCv205ty",
+    "fullName": "Usuario de Solo Lectura",
+    "email": "visualizador@empresa.com",
+    "role": "Visualizador",
+    "active": true,
+    "shift": "A",
+    "createdAt": "2025-12-19T03:13:05.497Z",
+    "lastModified": "2025-12-19T03:13:05.497Z",
+    "lastAccess": null,
+    "permissions": [
+      "read"
+    ]
+  },
+  {
+    "id": "id_xo1j3svp1_1766114790667",
+    "username": "giomar",
+    "password": "giomar",
+    "fullName": "giomar",
+    "email": "",
+    "rol": "Operador",
+    "guardia": "B",
+    "activo": true,
+    "fechaCreacion": "2025-12-19T03:26:30.667Z",
+    "ultimoAcceso": null,
+    "creadoPor": "admin",
+    "createdAt": "2025-12-19T03:26:30.702Z",
+    "updatedAt": "2025-12-19T03:26:30.702Z",
+    "lastModified": "2025-12-19T03:26:30.702Z",
+    "syncStatus": "synced",
+    "active": true,
+    "deleted": false
+  }
+]

@@ -1,0 +1,175 @@
+/* Dashboard Card - Glassmorphism */
+.dashboard-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 24px;
+  padding: 24px;
+  cursor: grab;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  touch-action: none;
+}
+
+.dashboard-card:active {
+  cursor: grabbing;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.dashboard-card:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.dashboard-card.dragging {
+  opacity: 0.5;
+  transform: scale(1.05);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+/* Light Theme */
+.dashboard-card.light {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #1e293b;
+}
+
+.dashboard-card.light:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Dark Theme */
+.dashboard-card.dark {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+}
+
+/* Icon Wrapper */
+.card-icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  margin-bottom: 16px;
+}
+
+.card-icon {
+  color: #3b82f6;
+  transition: transform 0.3s ease;
+}
+
+.dashboard-card:hover .card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Badge */
+.card-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s infinite;
+}
+
+.badge-red {
+  background: #ef4444;
+  color: white;
+}
+
+.badge-blue {
+  background: #3b82f6;
+  color: white;
+}
+
+.badge-green {
+  background: #10b981;
+  color: white;
+}
+
+.badge-yellow {
+  background: #f59e0b;
+  color: white;
+}
+
+.badge-purple {
+  background: #8b5cf6;
+  color: white;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Title */
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+/* Description */
+.card-description {
+  font-size: 14px;
+  opacity: 0.8;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Drag Indicator */
+.card-drag-indicator {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.dashboard-card:hover .card-drag-indicator {
+  opacity: 0.6;
+}
+
+.card-drag-indicator span {
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-card {
+    padding: 20px;
+  }
+  
+  .card-title {
+    font-size: 16px;
+  }
+  
+  .card-description {
+    font-size: 13px;
+  }
+}

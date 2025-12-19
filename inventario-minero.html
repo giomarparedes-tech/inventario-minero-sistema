@@ -1,0 +1,3128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Inventario Minero - Chancado Primario & Pebbles</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1976d2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Inventario Minero">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="inventario-manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+    
+    <!-- Modern Responsive Styles -->
+    <link rel="stylesheet" href="splash-screen.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="login-styles.css">
+    <link rel="stylesheet" href="login-industrial.css">
+    <link rel="stylesheet" href="nav-industrial.css">
+    <link rel="stylesheet" href="mining-header.css">
+    <link rel="stylesheet" href="user-management.css">
+    
+    <style>
+        /* Additional custom styles specific to this app */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Prevent horizontal scroll on mobile */
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+            width: 100%;
+        }
+
+        :root {
+            --primary-color: rgb(3, 23, 149);
+            --secondary-color: #424242;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --error-color: #f44336;
+            --background-color: #f5f5f5;
+            --surface-color: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+        }
+
+        [data-theme="dark"] {
+            --background-color: #121212;
+            --surface-color: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 0.75rem;
+            overflow-x: hidden;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                max-width: 1200px;
+                padding: 0 1.5rem;
+            }
+        }
+
+        /* Header - OCULTO COMPLETAMENTE */
+        .header {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            position: absolute !important;
+            top: -9999px !important;
+            left: -9999px !important;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            font-size: 0.9rem;
+            background: transparent;
+            padding: 4px;
+            border-radius: 0;
+        }
+
+        .sync-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+
+        .sync-indicator.offline {
+            background: var(--error-color);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Navigation */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 24px 0;
+            position: relative;
+            z-index: 998;
+        }
+
+        .nav-card {
+            background: var(--surface-color);
+            border-radius: 0;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            z-index: 999;
+            pointer-events: auto;
+            touch-action: manipulation;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            border-color: var(--primary-color);
+        }
+
+        .nav-card.admin-only {
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .nav-card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .nav-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .nav-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .alert-badge {
+            background: var(--error-color);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            padding: 24px 0;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .back-button {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #616161;
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-card {
+            background: var(--surface-color);
+            border-radius: 0;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 0;
+            font-size: 1rem;
+            background: var(--surface-color);
+            color: var(--text-primary);
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 0;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 48px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #388e3c;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+
+        /* Tables */
+        .table-container {
+            background: var(--surface-color);
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background: var(--background-color);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .table tr:hover {
+            background: rgba(25, 118, 210, 0.04);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 0;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-normal {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-low {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error-color);
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 0;
+            background: var(--surface-color);
+            color: var(--text-primary);
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 0.9rem;
+            }
+            
+            .header-actions {
+                gap: 8px;
+            }
+            
+            .theme-toggle, .logout-btn {
+                padding: 6px;
+                font-size: 1.2rem;
+            }
+            
+            .user-info {
+                font-size: 0.8rem;
+            }
+            
+            .nav-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                padding: 16px 0;
+            }
+
+            .nav-card {
+                padding: 20px;
+                min-height: 100px;
+                z-index: 9999 !important;
+                pointer-events: auto !important;
+                -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+                -webkit-user-select: none;
+                user-select: none;
+            }
+            
+            .nav-card * {
+                pointer-events: none;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .filters {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .table {
+                min-width: 600px;
+                width: 100%;
+            }
+        }
+
+        /* Login Mobile Optimizations */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 20px 16px;
+            }
+
+            .login-card {
+                padding: 32px 24px;
+                position: relative;
+                z-index: 10;
+            }
+
+            .company-logo {
+                max-width: 200px;
+            }
+
+            .system-title {
+                font-size: 1.5rem;
+            }
+
+            .system-subtitle {
+                font-size: 0.85rem;
+            }
+
+            .login-description {
+                font-size: 0.8rem;
+            }
+
+            .login-form .form-group {
+                margin-bottom: 20px;
+            }
+
+            .login-form .form-label {
+                font-size: 0.9rem;
+            }
+
+            .login-form .form-group input {
+                padding: 16px;
+                font-size: 16px !important; /* Evita zoom en iOS */
+                border-radius: 8px;
+            }
+
+            .login-btn {
+                padding: 18px;
+                font-size: 1rem;
+                min-height: 56px;
+                border-radius: 8px;
+            }
+
+            .remember-me {
+                margin-bottom: 20px;
+            }
+
+            .remember-me input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        /* Touch-friendly for gloves */
+        @media (pointer: coarse) {
+            .btn {
+                min-height: 52px;
+                padding: 16px 28px;
+            }
+
+            .nav-card {
+                min-height: 140px;
+                padding: 28px;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 16px 20px;
+                font-size: 1.1rem;
+            }
+
+            .login-form .form-group input {
+                padding: 18px 16px;
+                font-size: 16px !important;
+                min-height: 56px;
+            }
+
+            .login-btn {
+                min-height: 60px;
+                padding: 20px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Photo Capture */
+        .photo-capture {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .photo-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .photo-item {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 0;
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--error-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: var(--background-color);
+            padding: 20px;
+            border-radius: 0;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Notifications */
+        .notification-permission {
+            background: var(--warning-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-permission button {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 0;
+            cursor: pointer;
+        }
+
+        /* QR Scanner */
+        .qr-scanner {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .qr-video {
+            width: 100%;
+            border-radius: 0;
+        }
+
+        .qr-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 2px solid var(--primary-color);
+            border-radius: 0;
+            pointer-events: none;
+        }
+
+        /* Enhanced Tables */
+        .table-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .table-actions .btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            min-height: auto;
+        }
+
+        /* Material Cards */
+        .material-card {
+            background: var(--surface-color);
+            border-radius: 0;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .material-card.low-stock {
+            border-left-color: var(--error-color);
+        }
+
+        .material-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .material-code {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .material-status {
+            padding: 4px 8px;
+            border-radius: 0;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .material-photos {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            overflow-x: auto;
+        }
+
+        .material-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 0;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid var(--border-color);
+        }
+
+        /* Login Styles - Modern Mining Corporate Design */
+        .login-container {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 25%, #2d3748 50%, #1a2332 75%, #0f1419 100%);
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(3, 23, 149, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(244, 67, 54, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(76, 175, 80, 0.05) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-10px) translateY(-10px); }
+            50% { transform: translateX(10px) translateY(10px); }
+            75% { transform: translateX(-5px) translateY(15px); }
+        }
+
+        .login-card {
+            position: relative;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 48px;
+            box-shadow: 
+                0 32px 64px rgba(0, 0, 0, 0.3),
+                0 16px 32px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: cardFloat 6s ease-in-out infinite;
+            transform-style: preserve-3d;
+        }
+
+        [data-theme="dark"] .login-card {
+            background: rgba(30, 30, 30, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0px) rotateX(0deg); }
+            50% { transform: translateY(-10px) rotateX(1deg); }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .company-logo {
+            width: 100%;
+            max-width: 280px;
+            height: auto;
+            margin: 0 auto 24px auto;
+            display: block;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+            animation: logoGlow 4s ease-in-out infinite;
+            object-fit: contain;
+        }
+
+        @keyframes logoGlow {
+            0%, 100% { filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2)); }
+            50% { filter: drop-shadow(0 4px 16px rgba(3, 23, 149, 0.3)); }
+        }
+
+        .system-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgb(3, 23, 149) 0%, rgb(2, 18, 119) 50%, rgb(1, 12, 89) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            animation: titleShine 3s ease-in-out infinite;
+        }
+
+        @keyframes titleShine {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .system-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            opacity: 0.8;
+        }
+
+        .login-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            opacity: 0.7;
+        }
+
+        .login-form {
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .login-form .form-group {
+            position: relative;
+            margin-bottom: 28px;
+        }
+
+        .login-form .form-group {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .login-form .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        .login-form .form-group input {
+            width: 100%;
+            padding: 16px 18px;
+            border: 2px solid rgba(3, 23, 149, 0.2);
+            border-radius: 8px;
+            font-size: 16px; /* Evita zoom en iOS */
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        [data-theme="dark"] .login-form .form-group input {
+            background: rgba(30, 30, 30, 0.95);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .login-form .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(3, 23, 149, 0.1);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        [data-theme="dark"] .login-form .form-group input:focus {
+            background: rgba(30, 30, 30, 1);
+        }
+
+        .login-form .form-group input::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+        }
+
+        [data-theme="dark"] .login-form .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+
+        .login-btn {
+            width: 100%;
+            margin-top: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 18px;
+            background: linear-gradient(135deg, rgb(3, 23, 149) 0%, rgb(2, 18, 119) 50%, rgb(1, 12, 89) 100%);
+            border: none;
+            border-radius: 0;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(3, 23, 149, 0.4);
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-footer {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid rgba(25, 118, 210, 0.1);
+            position: relative;
+        }
+
+        .login-footer p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            opacity: 0.8;
+        }
+
+        .btn-secondary {
+            background: rgba(66, 66, 66, 0.9);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(97, 97, 97, 0.9);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .floating-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(3, 23, 149, 0.3);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        .particle:nth-child(2n) {
+            background: rgba(244, 67, 54, 0.2);
+            animation-duration: 20s;
+        }
+
+        .particle:nth-child(3n) {
+            background: rgba(76, 175, 80, 0.2);
+            animation-duration: 25s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .mining-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgb(3, 23, 149) 2px, transparent 2px),
+                radial-gradient(circle at 75% 75%, #f44336 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: patternMove 30s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes patternMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .demo-users {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 0;
+            padding: 24px;
+            margin-top: 20px;
+            border: 1px solid rgba(3, 23, 149, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        [data-theme="dark"] .demo-users {
+            background: rgba(30, 30, 30, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .demo-users h4 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 2px solid rgba(3, 23, 149, 0.2);
+            padding-bottom: 12px;
+        }
+
+        .demo-user {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: rgba(3, 23, 149, 0.05);
+            border-radius: 0;
+            border: 1px solid rgba(3, 23, 149, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .demo-user:hover {
+            background: rgba(3, 23, 149, 0.1);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(3, 23, 149, 0.2);
+        }
+
+        .demo-user:last-child {
+            margin-bottom: 0;
+        }
+
+        .demo-user-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .demo-user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgb(3, 23, 149), rgb(2, 18, 119));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .demo-user-details {
+            flex: 1;
+        }
+
+        .demo-user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .demo-user-role {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        .demo-user-password {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, rgba(25, 118, 210, 0.15), rgba(25, 118, 210, 0.25));
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            border: 1px solid rgba(25, 118, 210, 0.3);
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .demo-user:hover .demo-user-password {
+            background: linear-gradient(135deg, rgba(25, 118, 210, 0.25), rgba(25, 118, 210, 0.35));
+            transform: scale(1.05);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .logout-btn {
+            background: var(--error-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #d32f2f;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        /* User Management */
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .user-table th,
+        .user-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-table th {
+            background: var(--background-color);
+            font-weight: 600;
+        }
+
+        .user-status {
+            padding: 4px 8px;
+            border-radius: 0;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .user-active {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .user-inactive {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error-color);
+        }
+
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 0;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .role-admin {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error-color);
+        }
+
+        .role-supervisor {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--warning-color);
+        }
+
+        .role-operator {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        /* User Profile Styles */
+        /* Modern Glassmorphism User Info Card */
+        .user-info-card-modern {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(209, 213, 219, 0.2);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(107, 114, 128, 0.05);
+            animation: fadeInUp 200ms ease-out;
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] .user-info-card-modern {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 1px 3px rgba(17, 24, 39, 0.1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .user-info-card-modern {
+                animation: none;
+            }
+        }
+
+        .user-info-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(209, 213, 219, 0.3);
+        }
+
+        [data-theme="dark"] .user-info-header {
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-avatar-modern {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgb(3, 23, 149), rgb(2, 18, 119));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .status-ring {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #10b981;
+            border: 3px solid var(--surface-color);
+        }
+
+        .status-ring.offline {
+            background: #6b7280;
+        }
+
+        .user-name-section {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-full-name {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            color: var(--text-primary);
+            margin: 0 0 4px 0;
+        }
+
+        .user-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .user-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .user-info-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .info-item-full {
+            grid-column: 1 / -1;
+        }
+
+        .info-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--primary-color);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .info-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .guardia-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            background: #f59e0b;
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 9999px;
+            letter-spacing: 0.025em;
+        }
+
+        /* Account Configuration Section */
+        .account-config-section {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .section-subtitle {
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        [data-theme="dark"] .section-subtitle {
+            color: rgba(209, 213, 219, 1);
+        }
+
+        .config-card {
+            background: rgba(249, 250, 251, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(209, 213, 219, 0.2);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 1px 3px rgba(107, 114, 128, 0.05);
+            transition: all 0.2s ease-out;
+        }
+
+        [data-theme="dark"] .config-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 1px 3px rgba(17, 24, 39, 0.1);
+        }
+
+        .config-card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 24px 0;
+        }
+
+        .config-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--primary-color);
+        }
+
+        /* Modern Form Styles */
+        .modern-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modern-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modern-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .input-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .modern-input {
+            width: 100%;
+            padding: 12px 16px;
+            padding-right: 48px;
+            border: 2px solid rgba(209, 213, 219, 0.3);
+            border-radius: 12px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text-primary);
+            transition: all 0.2s ease-out;
+        }
+
+        [data-theme="dark"] .modern-input {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .modern-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(3, 23, 149, 0.1);
+        }
+
+        .modern-input.error {
+            border-color: #ef4444;
+        }
+
+        .modern-input.success {
+            border-color: #10b981;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .toggle-password:hover {
+            color: var(--primary-color);
+        }
+
+        .eye-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .validation-icon {
+            position: absolute;
+            right: 16px;
+            font-size: 20px;
+        }
+
+        /* Password Strength Indicator */
+        .password-strength-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .strength-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(209, 213, 219, 0.3);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease-out;
+            border-radius: 3px;
+        }
+
+        .strength-fill.weak {
+            width: 33%;
+            background: #ef4444;
+        }
+
+        .strength-fill.medium {
+            width: 66%;
+            background: #f59e0b;
+        }
+
+        .strength-fill.strong {
+            width: 100%;
+            background: #10b981;
+        }
+
+        .strength-text {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            min-width: 60px;
+        }
+
+        .strength-text.weak { color: #ef4444; }
+        .strength-text.medium { color: #f59e0b; }
+        .strength-text.strong { color: #10b981; }
+
+        .field-error {
+            font-size: 12px;
+            color: #ef4444;
+            display: none;
+        }
+
+        .field-error.show {
+            display: block;
+        }
+
+        /* iOS-style Toggle Switch */
+        .preferences-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .preference-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .preference-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .preference-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .preference-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+        }
+
+        .preference-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .ios-toggle {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .ios-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(209, 213, 219, 0.5);
+            border-radius: 28px;
+            transition: all 0.2s ease-out;
+        }
+
+        .toggle-slider:before {
+            content: "";
+            position: absolute;
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.2s ease-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .ios-toggle input:checked + .toggle-slider {
+            background: var(--primary-color);
+        }
+
+        .ios-toggle input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .ios-toggle input:focus-visible + .toggle-slider {
+            box-shadow: 0 0 0 3px rgba(3, 23, 149, 0.2);
+        }
+
+        .toggle-icon {
+            position: absolute;
+            font-size: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: opacity 0.2s;
+        }
+
+        .toggle-icon.sun {
+            left: 6px;
+            opacity: 1;
+        }
+
+        .toggle-icon.moon {
+            right: 6px;
+            opacity: 0;
+        }
+
+        .ios-toggle input:checked ~ .toggle-slider .sun {
+            opacity: 0;
+        }
+
+        .ios-toggle input:checked ~ .toggle-slider .moon {
+            opacity: 1;
+        }
+
+        /* Modern Buttons */
+        .modern-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+        }
+
+        .modern-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .modern-btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .modern-btn-primary:hover:not(:disabled) {
+            background: rgb(2, 18, 119);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(3, 23, 149, 0.3);
+        }
+
+        .modern-btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .modern-btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .modern-btn-success.saved {
+            background: #10b981;
+        }
+
+        .btn-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .config-card {
+                padding: 20px;
+            }
+            
+            .preference-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* Legacy styles for compatibility */
+        .user-profile-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: var(--background-color);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .profile-details h4 {
+            margin: 0 0 12px 0;
+            color: var(--text-primary);
+            font-size: 1.3rem;
+        }
+
+        .profile-details p {
+            margin: 8px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .profile-details strong {
+            color: var(--text-primary);
+        }
+
+        .access-denied {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--surface-color);
+            border-radius: 12px;
+            border: 2px solid var(--error-color);
+        }
+
+        .access-denied-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        .access-denied h3 {
+            color: var(--error-color);
+            margin-bottom: 12px;
+        }
+
+        .access-denied p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .password-strength {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .password-weak {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error-color);
+        }
+
+        .password-medium {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--warning-color);
+        }
+
+        .password-strong {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        /* ============================================
+           SOLUCIÓN: Ocultar header hasta login exitoso
+           ============================================ */
+        
+        /* Header antiguo eliminado - Ahora usando Glass Header */
+
+        /* Asegurar que el login tenga prioridad visual */
+        #loginSection.active {
+            position: relative;
+            z-index: 9999;
+        }
+
+        #loginSection .login-form input {
+            position: relative;
+            z-index: 10003;
+            isolation: isolate;
+        }
+        
+        /* FIX CRÍTICO PARA MÓVIL - Asegurar clics funcionan */
+        @media (max-width: 768px) {
+            /* Ocultar cualquier overlay que bloquee */
+            .mobile-menu-overlay,
+            .dropdown-backdrop {
+                display: none !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+                z-index: -1 !important;
+            }
+            
+            /* Asegurar que nav-cards sean clicables */
+            .nav-card {
+                position: relative !important;
+                z-index: 9999 !important;
+                pointer-events: auto !important;
+                cursor: pointer !important;
+            }
+            
+            /* Asegurar que el contenido de nav-card no bloquee el clic */
+            .nav-card * {
+                pointer-events: none !important;
+            }
+            
+            /* Container y nav-grid también con z-index alto */
+            .container,
+            .nav-grid,
+            .content-section {
+                position: relative !important;
+                z-index: 100 !important;
+            }
+        }
+        
+        /* ============================================
+           TODOS LOS HEADERS ANTIGUOS ELIMINADOS
+           Ahora solo existe: Glass Header (glass-header-integration.js)
+           ============================================ */
+        
+        /* ============================================
+           GESTIÓN DE USUARIOS - Ocultar para no-admin
+           ============================================ */
+        body:not(.user-admin) .admin-only {
+            display: none !important;
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- Mining Header Container -->
+    <div id="mining-header"></div>
+
+    <div class="container">
+        <!-- Login Section -->
+        <section id="loginSection" class="content-section active">
+            <div class="login-container">
+                <!-- Animated Background Elements -->
+                <div class="floating-particles">
+                    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+                    <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+                    <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+                    <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
+                    <div class="particle" style="left: 50%; animation-delay: 8s;"></div>
+                    <div class="particle" style="left: 60%; animation-delay: 10s;"></div>
+                    <div class="particle" style="left: 70%; animation-delay: 12s;"></div>
+                    <div class="particle" style="left: 80%; animation-delay: 14s;"></div>
+                    <div class="particle" style="left: 90%; animation-delay: 16s;"></div>
+                </div>
+                <div class="mining-pattern"></div>
+                
+                <div class="login-card">
+                    <div class="login-header">
+                        <img src="https://companieslogo.com/img/orig/AAL.L_BIG-30373c8c.png?t=1649757032&download=true" alt="AngloAmerican Logo" class="company-logo">
+                        
+                        <h1 class="system-title">Chancado Primario & Pebbles</h1>
+                        <p class="system-subtitle">Sistema de Reportes e Inventariado Inteligente</p>
+                        <p class="login-description">Gestión Avanzada de Materiales en Chancado Primario & Pebbles</p>
+                    </div>
+                    
+                    <form id="loginForm" class="login-form">
+                        <div class="form-group">
+                            <label for="loginUsername" class="form-label">👤 Usuario</label>
+                            <input type="text" id="loginUsername" placeholder="Ingrese su usuario" required autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword" class="form-label">🔒 Contraseña</label>
+                            <input type="password" id="loginPassword" placeholder="Ingrese su contraseña" required autocomplete="current-password">
+                        </div>
+                        <div class="remember-me">
+                            <input type="checkbox" id="showPassword" onchange="togglePasswordVisibility()">
+                            <label for="showPassword">Mostrar contraseña</label>
+                        </div>
+                        <button type="submit" class="login-btn">
+                            <span>🚀 Iniciar Sesión</span>
+                        </button>
+                        
+                        <!-- Botón de Login Rápido para Pruebas -->
+                        <button type="button" id="quickLoginBtn" onclick="quickLoginAdmin()" style="width: 100%; margin-top: 12px; padding: 14px; font-size: 0.95rem; font-weight: 600; border-radius: 8px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(245, 158, 11, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(245, 158, 11, 0.3)'"></button>
+                            ⚡ Login Rápido Admin (Pruebas)
+                        </button>
+                        
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <a href="#" onclick="app.showForgotPassword(); return false;" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                                🔑 ¿Olvidaste tu contraseña?
+                            </a>
+                        </div>
+                    </form>
+                    
+                    <div class="login-footer">
+                        <p style="margin-bottom: 12px;">¿Problemas para acceder? Contacte al administrador del sistema</p>
+                        <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary-color); margin-bottom: 20px;">
+                            📞 Giomar Paredes - Cel: <a href="tel:+51959169360" style="color: var(--primary-color); text-decoration: none;">959169360</a>
+                        </p>
+                    </div>
+                        <div id="demoUsers" class="demo-users" style="display: none;">
+                            <h4>� Usuariio de Acceso</h4>
+                            <div class="demo-user" onclick="fillLoginForm('admin', 'admin123')">
+                                <div class="demo-user-info">
+                                    <div class="demo-user-avatar">A</div>
+                                    <div class="demo-user-details">
+                                        <div class="demo-user-name">admin</div>
+                                        <div class="demo-user-role">🔴 Administrador</div>
+                                    </div>
+                                </div>
+                                <div class="demo-user-password">admin123</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Navigation -->
+        <section id="mainNav" class="content-section">
+            <div class="nav-grid">
+                <div class="nav-card" onclick="showSection('inventory')">
+                    <div class="nav-card-icon">📦</div>
+                    <h3>Inventario General</h3>
+                    <p>Consultar stock de polines y liners con filtros por ubicación y tipo</p>
+                </div>
+
+                <div class="nav-card" onclick="showSection('ingress')">
+                    <div class="nav-card-icon">➕</div>
+                    <h3>Ingreso de Stock</h3>
+                    <p>Registrar llegada de nuevos materiales al almacén</p>
+                </div>
+
+                <div class="nav-card" onclick="showSection('consumption')">
+                    <div class="nav-card-icon">🔧</div>
+                    <h3>Registro de Consumo</h3>
+                    <p>Registrar uso de materiales por equipo y guardia</p>
+                </div>
+
+                <div class="nav-card" onclick="showSection('outbound')">
+                    <div class="nav-card-icon">📤</div>
+                    <h3>Salidas de Material</h3>
+                    <p>Transferencias, préstamos y despachos a otras áreas</p>
+                </div>
+
+                <div class="nav-card" onclick="showSection('reports')">
+                    <div class="nav-card-icon">📊</div>
+                    <h3>Reportes & Dashboard</h3>
+                    <p>Análisis de consumo y estadísticas de inventario</p>
+                </div>
+
+                <div class="nav-card" onclick="showSection('alerts')" style="position: relative;">
+                    <div class="nav-card-icon">⚠️</div>
+                    <h3>Alertas de Stock</h3>
+                    <p>Materiales con stock bajo que requieren reposición</p>
+                    <div class="alert-badge" id="alertCount">3</div>
+                </div>
+
+                <div class="nav-card" onclick="showSection('history')">
+                    <div class="nav-card-icon">📜</div>
+                    <h3>Historial</h3>
+                    <p>Registro completo de movimientos de inventario</p>
+                </div>
+
+                <div class="nav-card" onclick="window.location.href='cambio-polines.html'">
+                    <div class="nav-card-icon">🔄</div>
+                    <h3>Cambio de Polines</h3>
+                    <p>Registrar el cambio de polines</p>
+                </div>
+
+                <div class="nav-card admin-only" onclick="window.location.href='/gestion-usuarios.html'" id="userManagementCard">
+                    <div class="nav-card-icon">👥</div>
+                    <h3>Gestión de Usuarios</h3>
+                    <p>Crear, editar y administrar usuarios del sistema</p>
+                </div>
+
+                <div class="nav-card admin-only" onclick="showSection('config')" id="configCard">
+                    <div class="nav-card-icon">⚙️</div>
+                    <h3>Configuración</h3>
+                    <p>Importar datos y configuraciones del sistema</p>
+                </div>
+
+                <div class="nav-card user-profile" onclick="showSection('profile')" id="profileCard">
+                    <div class="nav-card-icon">👤</div>
+                    <h3>Mi Perfil</h3>
+                    <p>Cambiar contraseña y configuración personal</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Inventory Section -->
+        <section id="inventory" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">📦 Inventario General</h2>
+                <button class="back-button" onclick="showSection('mainNav')">← Volver</button>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Tipo de Material</label>
+                    <select id="filterType">
+                        <option value="">Todos</option>
+                        <option value="Polín">Polín</option>
+                        <option value="Liner">Liner</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Ubicación</label>
+                    <select id="filterLocation">
+                        <option value="">Todas</option>
+                        <option value="Almacén A">Almacén A</option>
+                        <option value="Almacén B">Almacén B</option>
+                        <option value="Zona Chancado">Zona Chancado</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Buscar</label>
+                    <input type="text" id="searchInput" placeholder="Código o descripción...">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th>Tipo</th>
+                            <th>Stock Actual</th>
+                            <th>Stock Mínimo</th>
+                            <th>Ubicación</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTable">
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Ingress Section -->
+        <section id="ingress" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">➕ Ingreso de Stock</h2>
+                <button class="back-button" onclick="showSection('mainNav')">← Volver</button>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-card">
+                    <h3>Registrar Nuevo Ingreso</h3>
+                    <form id="ingressForm">
+                        <div class="form-group">
+                            <label>Fecha</label>
+                            <input type="date" id="ingressDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Código/Lote</label>
+                            <input type="text" id="ingressCode" placeholder="Ej: POL-2024-001" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Material</label>
+                            <select id="ingressType" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="Polín">Polín</option>
+                                <option value="Liner">Liner</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción</label>
+                            <input type="text" id="ingressDescription" placeholder="Descripción del material" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad</label>
+                            <input type="number" id="ingressQuantity" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ubicación</label>
+                            <select id="ingressLocation" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="Almacén A">Almacén A</option>
+                                <option value="Almacén B">Almacén B</option>
+                                <option value="Zona Chancado">Zona Chancado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Proveedor</label>
+                            <input type="text" id="ingressSupplier" placeholder="Nombre del proveedor">
+                        </div>
+                        <div class="form-group">
+                            <label>Observaciones</label>
+                            <textarea id="ingressObservations" rows="3" placeholder="Observaciones adicionales..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Documentación Fotográfica</label>
+                            <div class="photo-capture">
+                                <button type="button" class="btn btn-primary" onclick="capturePhoto('ingress')">📷 Tomar Foto</button>
+                                <input type="file" id="ingressPhoto" accept="image/*" capture="environment" style="display: none;">
+                                <div id="ingressPhotoPreview" class="photo-preview"></div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success">💾 Guardar Ingreso</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Consumption Section -->
+        <section id="consumption" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">➖ Registro de Consumo</h2>
+                <button class="back-button" onclick="showSection('mainNav')">← Volver</button>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-card">
+                    <h3>Registrar Consumo</h3>
+                    <form id="consumptionForm">
+                        <div class="form-group">
+                            <label>Fecha</label>
+                            <input type="date" id="consumptionDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Guardia</label>
+                            <select id="consumptionShift" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="A">Guardia A</option>
+                                <option value="B">Guardia B</option>
+                                <option value="C">Guardia C</option>
+                                <option value="D">Guardia D</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Material</label>
+                            <select id="consumptionMaterial" required>
+                                <option value="">Seleccionar material...</option>
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad</label>
+                            <input type="number" id="consumptionQuantity" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Equipo/Zona de Uso</label>
+                            <input type="text" id="consumptionEquipment" placeholder="Ej: Chancadora Primaria 1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Responsable</label>
+                            <input type="text" id="consumptionResponsible" placeholder="Nombre del responsable" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Observaciones</label>
+                            <textarea id="consumptionObservations" rows="3" placeholder="Motivo del consumo, observaciones..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-warning">📝 Registrar Consumo</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration Section -->
+        <section id="config" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">⚙️ Configuración del Sistema</h2>
+                <button class="back-button" onclick="showSection('mainNav')">← Volver</button>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-card">
+                    <h3>📊 Gestión de Datos</h3>
+                    <div class="form-group">
+                        <label>Importar Datos desde Excel</label>
+                        <input type="file" id="excelImport" accept=".xlsx,.xls" style="margin-bottom: 12px;">
+                        <button type="button" class="btn btn-primary" onclick="importExcel()">📥 Importar Excel</button>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-success" onclick="exportData()">📤 Exportar Datos</button>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-warning" onclick="clearData()">🗑️ Limpiar Datos</button>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <h3>👤 Configuración de Usuario</h3>
+                    <div class="form-group">
+                        <label>Nombre de Usuario</label>
+                        <input type="text" id="userName" placeholder="Ingrese su nombre">
+                    </div>
+                    <div class="form-group">
+                        <label>Rol</label>
+                        <select id="userRole">
+                            <option value="Operador">Operador</option>
+                            <option value="Supervisor">Supervisor</option>
+                            <option value="Administrador">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Guardia Predeterminada</label>
+                        <select id="defaultShift">
+                            <option value="A">Guardia A</option>
+                            <option value="B">Guardia B</option>
+                            <option value="C">Guardia C</option>
+                            <option value="D">Guardia D</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="saveUserConfig()">💾 Guardar Configuración</button>
+                </div>
+
+                <div class="form-card">
+                    <h3>🔧 Configuración del Sistema</h3>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="autoSync" checked> 
+                            Sincronización Automática
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="notifications" checked> 
+                            Notificaciones de Alertas
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Intervalo de Sincronización (minutos)</label>
+                        <input type="number" id="syncInterval" value="5" min="1" max="60">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="saveSystemConfig()">💾 Guardar Configuración</button>
+                </div>
+
+                <div class="form-card">
+                    <h3>📋 Agregar Material Nuevo</h3>
+                    <form id="newMaterialForm">
+                        <div class="form-group">
+                            <label>Código</label>
+                            <input type="text" id="newMaterialCode" placeholder="Ej: POL-001" required>
+                            <button type="button" class="btn btn-primary" onclick="generateQRCode()" style="margin-top: 8px; padding: 8px 12px; font-size: 0.9rem;">
+                                📱 Generar QR
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción</label>
+                            <input type="text" id="newMaterialDescription" placeholder="Descripción del material" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo</label>
+                            <select id="newMaterialType" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="Polín">Polín</option>
+                                <option value="Liner">Liner</option>
+                                <option value="Repuesto">Repuesto</option>
+                                <option value="Herramienta">Herramienta</option>
+                                <option value="Consumible">Consumible</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock Mínimo</label>
+                            <input type="number" id="newMaterialMinStock" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio Unitario (Opcional)</label>
+                            <input type="number" id="newMaterialPrice" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Ubicación</label>
+                            <select id="newMaterialLocation" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="Almacén A">Almacén A</option>
+                                <option value="Almacén B">Almacén B</option>
+                                <option value="Zona Chancado">Zona Chancado</option>
+                                <option value="Taller Mantenimiento">Taller Mantenimiento</option>
+                                <option value="Área Temporal">Área Temporal</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Criticidad</label>
+                            <select id="newMaterialCriticality">
+                                <option value="Baja">Baja</option>
+                                <option value="Media">Media</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Crítica">Crítica</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success">➕ Agregar Material</button>
+                    </form>
+                </div>
+
+                <div class="form-card">
+                    <h3>🔍 Escáner QR/Código de Barras</h3>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" onclick="startQRScanner()">📱 Iniciar Escáner</button>
+                        <div id="qrScannerContainer" class="qr-scanner" style="display: none; margin-top: 12px;">
+                            <video id="qrVideo" class="qr-video" autoplay></video>
+                            <div class="qr-overlay"></div>
+                            <button type="button" class="btn btn-secondary" onclick="stopQRScanner()" style="margin-top: 8px;">
+                                ⏹️ Detener Escáner
+                            </button>
+                        </div>
+                        <div id="qrResult" style="margin-top: 12px;"></div>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <h3>📊 Estadísticas Avanzadas</h3>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" onclick="generateAdvancedReport()">📈 Generar Reporte Avanzado</button>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-success" onclick="exportToCSV()">📄 Exportar a CSV</button>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-warning" onclick="scheduleInventoryCheck()">⏰ Programar Conteo</button>
+                    </div>
+                </div>
+
+                <div class="form-card admin-only">
+                    <h3>👥 Gestión de Usuarios</h3>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" onclick="showUserManagement()">👤 Administrar Usuarios</button>
+                        <button type="button" class="btn btn-success" onclick="app.syncUsersNow()" style="margin-left: 10px;">🔄 Sincronizar Usuarios</button>
+                        <button type="button" class="btn btn-warning" onclick="app.debugUsers()" style="margin-left: 10px;">🔍 Ver Usuarios</button>
+                    </div>
+                    <div id="userManagement" style="display: none;"></div>
+                        <form id="newUserForm" style="margin-bottom: 20px; padding: 16px; background: var(--background-color); border-radius: 8px;">
+                            <h4>➕ Agregar Nuevo Usuario</h4>
+                            <div class="form-group">
+                                <label>Nombre Completo</label>
+                                <input type="text" id="newUserFullName" placeholder="Ej: Juan Pérez" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Usuario</label>
+                                <input type="text" id="newUserUsername" placeholder="Ej: juan.perez" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Contraseña</label>
+                                <input type="password" id="newUserPassword" placeholder="Mínimo 6 caracteres" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Rol</label>
+                                <select id="newUserRole" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Operador">Operador</option>
+                                    <option value="Supervisor">Supervisor</option>
+                                    <option value="Administrador">Administrador</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Guardia</label>
+                                <select id="newUserShift">
+                                    <option value="A">Guardia A</option>
+                                    <option value="B">Guardia B</option>
+                                    <option value="C">Guardia C</option>
+                                    <option value="D">Guardia D</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Email (Opcional)</label>
+                                <input type="email" id="newUserEmail" placeholder="usuario@empresa.com">
+                            </div>
+                            <button type="submit" class="btn btn-success">➕ Crear Usuario</button>
+                        </form>
+
+                        <div class="table-container">
+                            <table class="user-table">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Nombre</th>
+                                        <th>Rol</th>
+                                        <th>Guardia</th>
+                                        <th>Estado</th>
+                                        <th>Último Acceso</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTable">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Outbound Section -->
+        <section id="outbound" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">📤 Salidas de Material</h2>
+                <button class="back-button" onclick="showSection('mainNav')">← Volver</button>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-card">
+                    <h3>Registrar Salida</h3>
+                    <form id="outboundForm">
+                        <div class="form-group">
+                            <label>Fecha</label>
+                            <input type="date" id="outboundDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Salida</label>
+                            <select id="outboundType" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="Transferencia">Transferencia a otra área</option>
+                                <option value="Préstamo">Préstamo temporal</option>
+                                <option value="Despacho">Despacho a cliente</option>
+                                <option value="Devolución">Devolución a proveedor</option>
+                                <option value="Baja">Baja por deterioro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Material</label>
+                            <select id="outboundMaterial" required>
+                                <option value="">Seleccionar material...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad</label>
+                            <input type="number" id="outboundQuantity" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Destino/Receptor</label>
+                            <input type="text" id="outboundDestination" placeholder="Área, empresa o persona destino" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Responsable Autoriza</label>
+                            <input type="text" id="outboundAuthorizer" placeholder="Supervisor que autoriza" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Motivo/Observaciones</label>
+                            <textarea id="outboundObservations" rows="3" placeholder="Motivo de la salida, observaciones..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Documentación</label>
+                            <div class="photo-capture">
+                                <button type="button" class="btn btn-primary" onclick="capturePhoto('outbound')">📷 Tomar Foto</button>
+                                <div id="outboundPhotoPreview" class="photo-preview"></div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-warning">📤 Registrar Salida</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">📊 Reportes & Dashboard</h2>
+                <button class="back-button" onclick="showSection('mainNav')">← Volver</button>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-card">
+                    <h3>📈 Métricas Principales</h3>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="totalItems">0</div>
+                            <div class="metric-label">Total Items</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="lowStockItems">0</div>
+                            <div class="metric-label">Stock Bajo</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="todayMovements">0</div>
+                            <div class="metric-label">Movimientos Hoy</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="totalValue">$0</div>
+                            <div class="metric-label">Valor Total</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <h3>📊 Movimientos por Tipo</h3>
+                    <canvas id="movementChart" width="400" height="200"></canvas>
+                </div>
+
+                <div class="form-card">
+                    <h3>⚠️ Alertas Activas</h3>
+                    <div id="activeAlerts">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="alerts" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">⚠️ Alertas de Stock Bajo</h2>
+                <button class="back-button" onclick="showSection('mainNav')">← Volver</button>
+            </div>
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Funcionalidad en desarrollo...</p>
+            </div>
+        </section>
+
+        <section id="history" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">📜 Historial de Movimientos</h2>
+                <button class="back-button" onclick="showSection('mainNav')">← Volver</button>
+            </div>
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Funcionalidad en desarrollo...</p>
+            </div>
+        </section>
+
+        <!-- User Profile Section -->
+        <section id="profile" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">👤 Mi Perfil</h2>
+                <button class="back-button" onclick="showSection('mainNav')">← Volver</button>
+            </div>
+
+            <div class="form-grid">
+                <div class="user-info-card-modern">
+                    <div class="user-info-header">
+                        <div class="user-avatar-modern" id="profileAvatarModern">
+                            <span id="profileInitials">U</span>
+                            <div class="status-ring" id="statusRing"></div>
+                        </div>
+                        <div class="user-name-section">
+                            <h3 class="user-full-name" id="profileFullName">Nombre Usuario</h3>
+                            <p class="user-subtitle" id="profileUsername">@usuario</p>
+                        </div>
+                    </div>
+                    
+                    <div class="user-info-grid">
+                        <div class="info-item">
+                            <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <div class="info-content">
+                                <span class="info-label">USUARIO</span>
+                                <span class="info-value" id="profileUsernameValue">usuario</span>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                            <div class="info-content">
+                                <span class="info-label">ROL</span>
+                                <span class="info-value" id="profileRole">Rol</span>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div class="info-content">
+                                <span class="info-label">GUARDIA</span>
+                                <span class="guardia-badge" id="profileShift">A</span>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <div class="info-content">
+                                <span class="info-label">EMAIL</span>
+                                <span class="info-value" id="profileEmail">email@empresa.com</span>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item info-item-full">
+                            <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div class="info-content">
+                                <span class="info-label">ÚLTIMO ACCESO</span>
+                                <span class="info-value" id="profileLastAccess">Nunca</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preferencias Section -->
+                <div class="account-config-section">
+                    <h2 class="section-subtitle">Preferencias</h2>
+                    
+                    <div class="config-card">
+                        <h3 class="config-card-title">
+                            <svg class="config-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Configuración de la aplicación
+                        </h3>
+                        
+                        <div class="preferences-list">
+                            <div class="preference-item">
+                                <div class="preference-info">
+                                    <div class="preference-label">
+                                        <svg class="preference-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                        </svg>
+                                        Tema
+                                    </div>
+                                    <span class="preference-desc">Claro / Oscuro</span>
+                                </div>
+                                <label class="ios-toggle" aria-label="Cambiar tema">
+                                    <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+                                    <span class="toggle-slider">
+                                        <span class="toggle-icon sun">☀️</span>
+                                        <span class="toggle-icon moon">🌙</span>
+                                    </span>
+                                </label>
+                            </div>
+                            
+                            <div class="preference-item">
+                                <div class="preference-info">
+                                    <div class="preference-label">
+                                        <svg class="preference-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                        </svg>
+                                        Notificaciones
+                                    </div>
+                                    <span class="preference-desc">Recibir notificaciones</span>
+                                </div>
+                                <label class="ios-toggle" aria-label="Activar notificaciones">
+                                    <input type="checkbox" id="userNotifications" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="preference-item">
+                                <div class="preference-info">
+                                    <div class="preference-label">
+                                        <svg class="preference-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                                        </svg>
+                                        Sonidos
+                                    </div>
+                                    <span class="preference-desc">Sonidos de notificación</span>
+                                </div>
+                                <label class="ios-toggle" aria-label="Activar sonidos">
+                                    <input type="checkbox" id="userSounds" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="modern-btn modern-btn-success" id="saveConfigBtn" onclick="savePersonalConfig()">
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                            <span id="saveConfigText">Guardar configuración</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-card admin-only">
+                    <h3>🔧 Acceso Rápido Admin</h3>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-warning" onclick="showSection('config')">⚙️ Ir a Configuración Completa</button>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" onclick="showUserManagement()">👥 Gestionar Usuarios</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Inicializar sistema automáticamente - Versión simplificada para móviles
+        (function() {
+            try {
+                console.log('🚀 Inicializando sistema...');
+                
+                // Verificar si existen usuarios
+                let users = localStorage.getItem('inventario_users');
+                
+                if (!users || users === '[]' || users === 'null' || users === '') {
+                    console.log('⚠️ No hay usuarios, creando usuario admin por defecto...');
+                    
+                    const defaultUsers = [{
+                        id: 'user_admin',
+                        username: 'admin',
+                        password: 'admin123',
+                        fullName: 'Administrador del Sistema',
+                        email: 'admin@empresa.com',
+                        rol: 'Administrador',
+                        guardia: 'A',
+                        activo: true,
+                        fechaCreacion: new Date().toISOString(),
+                        ultimoAcceso: null,
+                        lastModified: new Date().toISOString()
+                    }];
+                    
+                    localStorage.setItem('inventario_users', JSON.stringify(defaultUsers));
+                    localStorage.setItem('users_version', '3.0');
+                    console.log('✅ Usuario admin creado: admin / admin123');
+                } else {
+                    console.log('✅ Usuarios existentes encontrados');
+                }
+            } catch (error) {
+                console.error('❌ Error en inicialización:', error);
+            }
+            
+            // Limpiar caché si es necesario (sin bloquear)
+            setTimeout(function() {
+                try {
+                    const version = '11.0';
+                    const currentVersion = localStorage.getItem('app_version');
+                    
+                    if (currentVersion !== version) {
+                        console.log('🔄 Nueva versión detectada');
+                        
+                        if ('caches' in window) {
+                            caches.keys().then(function(names) {
+                                for (let name of names) {
+                                    caches.delete(name);
+                                }
+                            }).catch(function(err) {
+                                console.log('Cache clear error:', err);
+                            });
+                        }
+                        
+                        localStorage.setItem('app_version', version);
+                        console.log('✅ Caché limpiado');
+                    }
+                } catch (error) {
+                    console.error('Error en limpieza de caché:', error);
+                }
+            }, 100);
+        })();
+        
+        // Función para mostrar/ocultar contraseña
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('loginPassword');
+            const showPasswordCheckbox = document.getElementById('showPassword');
+            
+            if (showPasswordCheckbox.checked) {
+                passwordInput.type = 'text';
+            } else {
+                passwordInput.type = 'password';
+            }
+        }
+        
+        // ============================================
+        // FUNCIÓN DE LOGIN RÁPIDO PARA PRUEBAS
+        // ============================================
+        function quickLoginAdmin() {
+            console.log('⚡ Login rápido admin activado');
+            
+            // Llenar los campos
+            document.getElementById('loginUsername').value = 'admin';
+            document.getElementById('loginPassword').value = 'admin123';
+            
+            // Mostrar notificación visual
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✅ Iniciando sesión...';
+            btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            
+            // Enviar el formulario después de un breve delay
+            setTimeout(() => {
+                const loginForm = document.getElementById('loginForm');
+                if (loginForm) {
+                    // Disparar el evento submit
+                    loginForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                }
+                
+                // Restaurar botón después de 2 segundos
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                }, 2000);
+            }, 500);
+        }
+    </script>
+
+    <!-- Modal para Reset de Contraseña -->
+    <div id="resetPasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+            <h3 style="margin-top: 0; color: #333;">🔑 Resetear Contraseña</h3>
+            
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 5px 0;"><strong>Usuario:</strong> <span id="resetUserName"></span></p>
+                <p style="margin: 5px 0;"><strong>Nombre:</strong> <span id="resetFullName"></span></p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">Nueva Contraseña:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="newPasswordInput" placeholder="Mínimo 6 caracteres" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                    <button onclick="app.generateRandomPassword()" class="btn btn-secondary" style="padding: 10px 15px;">🎲 Generar</button>
+                </div>
+                <small style="color: #666; display: block; margin-top: 5px;">La contraseña se mostrará al usuario después de resetearla</small>
+            </div>
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="app.closeResetPasswordModal()" class="btn" style="background: #6c757d; color: white; padding: 10px 20px;">Cancelar</button>
+                <button onclick="app.confirmResetPassword()" class="btn btn-success" style="padding: 10px 20px;">✅ Resetear Contraseña</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Recuperar Contraseña -->
+    <div id="forgotPasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center; overflow-y: auto;">
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 20px;">
+            <h3 style="margin-top: 0; color: #333;">🔑 Recuperar Contraseña</h3>
+            
+            <p style="color: #666; margin-bottom: 20px;">Ingresa tu nombre de usuario. El administrador recibirá una notificación para resetear tu contraseña.</p>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">Nombre de Usuario:</label>
+                <input type="text" id="forgotUsername" placeholder="Ej: juan.perez" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">Email (opcional):</label>
+                <input type="email" id="forgotEmail" placeholder="tu@email.com" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;">
+                <small style="color: #666; display: block; margin-top: 5px;">Si proporcionas tu email, te enviaremos una confirmación</small>
+            </div>
+            
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0; color: #1976d2; font-size: 0.9rem;">
+                    <strong>📞 Contacto directo:</strong><br>
+                    Giomar Paredes - <a href="tel:+51959169360" style="color: #1976d2;">959169360</a>
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="app.closeForgotPasswordModal()" class="btn" style="background: #6c757d; color: white; padding: 10px 20px;">Cancelar</button>
+                <button onclick="app.submitForgotPassword()" class="btn btn-primary" style="padding: 10px 20px;">📧 Solicitar Recuperación</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Management Section -->
+    <section id="userManagement" class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">👥 Gestión de Usuarios</h2>
+            <button class="back-button" onclick="showSection('mainNav')">← Volver</button>
+        </div>
+        
+        <div id="userManagementContainer"></div>
+    </section>
+
+    <!-- Gestión de Usuarios -->
+    <script src="crypto-utils.js"></script>
+    <script src="validators.js"></script>
+    <script src="user-manager.js"></script>
+    <script src="user-management-ui.js"></script>
+    
+    <script src="inventario-minero.js"></script>
+    
+    <!-- Mining Header Integration -->
+    <script src="mining-header-standalone.js"></script>
+    
+    <script>
+        // ============================================
+        // MINING HEADER - INTEGRACIÓN CON LA APP
+        // ============================================
+        window.miningHeader = null;
+
+        // Inicializar Mining Header después del login
+        function initMiningHeader() {
+            if (window.miningHeader) {
+                window.miningHeader.destroy();
+            }
+
+            // Obtener alertas del inventario
+            let alertCount = 0;
+            try {
+                const inventario = JSON.parse(localStorage.getItem('inventario') || '[]');
+                alertCount = inventario.filter(item => item.cantidad < 5).length;
+            } catch (e) {
+                alertCount = 0;
+            }
+
+            // Obtener tema guardado
+            const savedTheme = localStorage.getItem('miningTheme') || localStorage.getItem('theme') || 'light';
+            const isDark = savedTheme === 'dark';
+
+            // Crear header
+            window.miningHeader = new MiningHeader({
+                alerts: alertCount,
+                isDark: isDark,
+                onMenuToggle: (isOpen) => {
+                    console.log('Menu toggled:', isOpen);
+                },
+                onThemeToggle: (isDark) => {
+                    console.log('Theme toggled:', isDark ? 'dark' : 'light');
+                    // Actualizar tema en el body
+                    document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                },
+                menuItems: [
+                    { label: 'Mi Perfil', icon: '👤', href: '#perfil', action: 'perfil' },
+                    { label: 'Cerrar Sesión', icon: '🚪', href: '#logout', action: 'logout' }
+                ]
+            });
+
+            // Ocultar por defecto
+            window.miningHeader.hide();
+        }
+
+        // Mostrar header después del login
+        window.addEventListener('load', () => {
+            initMiningHeader();
+            
+            // Verificar que window.app esté disponible
+            console.log('🔍 window.app disponible:', !!window.app);
+            console.log('🔍 window.app.logout disponible:', window.app && typeof window.app.logout === 'function');
+
+            // Verificar si ya está logueado
+            if (document.body.classList.contains('app-logged-in') || localStorage.getItem('isLoggedIn') === 'true') {
+                if (window.miningHeader) {
+                    window.miningHeader.show();
+                }
+            }
+        });
+
+        // Actualizar alertas periódicamente
+        setInterval(() => {
+            if (window.miningHeader && document.body.classList.contains('app-logged-in')) {
+                try {
+                    const inventario = JSON.parse(localStorage.getItem('inventario') || '[]');
+                    const alertCount = inventario.filter(item => item.cantidad < 5).length;
+                    window.miningHeader.setAlerts(alertCount);
+                } catch (e) {
+                    console.error('Error updating alerts:', e);
+                }
+            }
+        }, 30000); // Cada 30 segundos
+    </script>
+</body>
+</html>

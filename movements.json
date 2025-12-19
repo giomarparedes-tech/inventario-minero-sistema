@@ -1,0 +1,18 @@
+[
+  {
+    "id": "mov_1766050579618",
+    "fecha": "2025-12-18",
+    "tipoMovimiento": "Ingreso",
+    "materialId": "pol001",
+    "tipoMaterial": "Polín",
+    "descripcion": "Polín de Acero 1200mm",
+    "cantidad": 25,
+    "guardia": "A",
+    "responsable": "Test User",
+    "equipoZona": "Zona Test",
+    "observaciones": "Movimiento de prueba para persistencia",
+    "lotecodigo": "POL-001",
+    "timestamp": "2025-12-18T09:36:19.620Z",
+    "syncStatus": "synced"
+  }
+]

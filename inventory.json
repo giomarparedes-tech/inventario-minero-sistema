@@ -1,0 +1,44 @@
+[
+  {
+    "id": "pol001",
+    "code": "POL-001",
+    "description": "Polín de Acero 1200mm",
+    "type": "Polín",
+    "currentStock": 70,
+    "minStock": 20,
+    "location": "Almacén A",
+    "supplier": "Proveedor ABC",
+    "unitPrice": 150,
+    "lastModified": "2025-12-18T09:36:19.620Z",
+    "version": 2,
+    "syncStatus": "synced"
+  },
+  {
+    "id": "test_1766050570960",
+    "code": "TEST-0960",
+    "description": "Material de Prueba Persistencia",
+    "type": "Prueba",
+    "currentStock": 100,
+    "minStock": 10,
+    "location": "Almacén Test",
+    "supplier": "Proveedor Test",
+    "unitPrice": 50,
+    "lastModified": "2025-12-18T09:36:10.962Z",
+    "version": 1,
+    "syncStatus": "synced"
+  },
+  {
+    "id": "mjb99ypqlt1gls7k7ca",
+    "code": "TEST-3870",
+    "description": "Material de Prueba Persistencia",
+    "type": "Prueba",
+    "currentStock": 100,
+    "minStock": 10,
+    "location": "Almacén Test",
+    "supplier": "Proveedor Test",
+    "unitPrice": 50,
+    "lastModified": "2025-12-18T09:46:23.872Z",
+    "version": 1,
+    "syncStatus": "synced"
+  }
+]
